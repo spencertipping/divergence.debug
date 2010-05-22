@@ -282,7 +282,7 @@ var d = (function () {
 
 __mAHhpP5JgWM51xZULH78ZjhNMuls84Ek6tMtnqKJqRA
 
-meta::code('divergence-rebase-lib', <<'__16dv7w0zB1h9tAdgZtrVYmlQKDbQ+xEL/TrrZaNq1zA');
+meta::code('divergence-rebase-lib', <<'__QZ+SOCTVQIQuQgjRkxf1vYUi/uPwKKMfWDcopWOg2Lk');
 Divergence Rebase module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -381,11 +381,9 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
           expect_re && token.charAt(0) === 'u' || (token = s.substring (mark, i));
           token in {} && (token = '@' + token);
-          ! t.is_value() && (token === 'u++' || token === 'u--') && (token = token.substring (1));    // Workaround for postfix ++ and --
 
-               if                (t.is_value() && r.statement[token])  t = t.push_op(';').push_op (located_token());
-          else if         (t.is_value() && '[('.indexOf (token) > -1)  openers.push (t = t.push_op (token + '!').graft (located_token()));
-          else if (($_ = r.closers[token]) && last(openers).op == $_)  t = openers.pop().parent;
+               if         (t.is_value() && '[('.indexOf (token) > -1)  openers.push (t = t.push_op (token + '!').graft (located_token()));
+          else if (($_ = r.closers[token]) && last(openers).op == $_)  t = openers.pop().parent, token === '}' && t.is_value() && r.statement[t.op] && (t = t.push_op(';'));
           else if                                     (token === '?')  openers.push (t = t.push_op (located_token()).graft ('?:'));
           else if                                  (r.openers[token])  openers.push (t = t.graft (located_token()));
           else if                                 (precedence[token])  t = t.push_op (located_token());
@@ -487,9 +485,10 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
   enable it like this:
 
   r.enable_inline_macro = (function (enabled) {return function () {enabled || (enabled = !! d.inline_macros.push ('$0.toString()'.compose (r.transform).compose (r.parse)))}}) (false)}) ();
-__16dv7w0zB1h9tAdgZtrVYmlQKDbQ+xEL/TrrZaNq1zA
 
-meta::code('main', <<'__CHmnSsdrAvKVtpz7EYPsixExkW30nhVKmcA7m9z/ti0');
+__QZ+SOCTVQIQuQgjRkxf1vYUi/uPwKKMfWDcopWOg2Lk
+
+meta::code('main', <<'__ZY/7KpS/n02+CrUWmYbsR+3wFK8IQ1CF4JT3BdDdE5Q');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -517,30 +516,30 @@ d.rebase (function () {
                    gensym:  function (s) {var n = t.random_integer(), s = t.gensym_prefix + (s || ''); while (s + n.toString(36) in global) n = t.random_integer(); return s + n.toString(36)},
 
                deep_clone:  function (v) {var mark = t.gensym('mark_'), marked = [],
-                                              traverse = function (x) {return ! x ? x : x[mark] ? marked[x[mark] - 1] :
-                        x.constructor === String || x.constructor === Number || x.constructor ===  Boolean ? x :
-                                                                                x.constructor ===    Array ? (x[mark] = marked.push(x)) && x.map(traverse) :
-                                                                                x.constructor === Function ? (x[mark] = marked.push(x)) && x :
-                                                                                                             (x[mark] = marked.push(x)) && d.map(x, '$1.maps_to($0($2))'.fn(traverse))},
-                                                unmark = function (x) {if                                                                               (! x) return null;
-                                                                       if                                                                           (x[mark]) delete x[mark];
-                                                                       if (x.constructor === String || x.constructor === Number || x.constructor === Boolean) return null;
-                                                                       if                                                           (x.constructor === Array) return x.each (unmark);
-                                                                       d.map (x, unmark.compose(1))},
-                                                result = traverse (v);
+                                          traverse = function (x) {return ! x ? x : x[mark] ? marked[x[mark] - 1] :
+                    x.constructor === String || x.constructor === Number || x.constructor ===  Boolean ? x :
+                                                                            x.constructor ===    Array ? (x[mark] = marked.push(x)) && x.map(traverse) :
+                                                                            x.constructor === Function ? (x[mark] = marked.push(x)) && x :
+                                                                                                         (x[mark] = marked.push(x)) && d.map(x, '$2 === $1 ? {} : $2.maps_to($0($3))'.fn(traverse, mark))},
+                                            unmark = function (x) {if                                                                               (! x) return null;
+                                                                   if                                                                           (x[mark]) delete x[mark];
+                                                                   if (x.constructor === String || x.constructor === Number || x.constructor === Boolean) return null;
+                                                                   if                                                           (x.constructor === Array) return x.each (unmark);
+                                                                   d.map (x, unmark.compose(1))},
+                                            result = traverse (v);
                                           unmark (v);
                                           return result}});
 
 
 }) ();
-__CHmnSsdrAvKVtpz7EYPsixExkW30nhVKmcA7m9z/ti0
+__ZY/7KpS/n02+CrUWmYbsR+3wFK8IQ1CF4JT3BdDdE5Q
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
 :: get main
 __UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0
 
-meta::code('test', <<'__LWtQRnegwqG4N3aKyO1Yq6b4h/1p+WiG5Gws0LJ25+g');
+meta::code('test', <<'__4okvi06M5Sw7pWhH0Ac+eGlv6p0UeL/ZCpEpzhgux/k');
 Divergence debug unit tests | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -549,18 +548,19 @@ Licensed under the terms of the MIT source code license
 :: get main
 :: get test-utils
 
-  var obj = {foo: 'bar'};
+  var x = {foo: 'bar'};
   print (d.keys (d.debug.deep_clone (x)));
   print (d.keys (d.debug.deep_clone (x)));
-__LWtQRnegwqG4N3aKyO1Yq6b4h/1p+WiG5Gws0LJ25+g
+__4okvi06M5Sw7pWhH0Ac+eGlv6p0UeL/ZCpEpzhgux/k
 
-meta::code('test-utils', <<'__y0hvweWKk7wy9bm5fJfhHpJ0k7OOEIwhA2vuE7aAEEc');
+meta::code('test-utils', <<'__tHoTKmrPyN4cgiyxnY74uo1roOtwNmGRC87zhFQjDxg');
 Unit test utilities.
 
+  var print        = this.print ? print : require('sys').puts;
   var assert       = function (x, msg) {if (! x) throw new Error ("Assertion failed: " + msg)};
   var assert_equal = function (x, y, msg) {x === y || assert (x === y, msg + ' -- ' + x.toString () + ' !== ' + y.toString ())};
   var trace        = function (x) {print (x); return x};
-__y0hvweWKk7wy9bm5fJfhHpJ0k7OOEIwhA2vuE7aAEEc
+__tHoTKmrPyN4cgiyxnY74uo1roOtwNmGRC87zhFQjDxg
 
 meta::data('default-action', <<'__zmNcTqv/Xk9W26j7HjnKI1UwqitrGFM+7xrzhiAWxXc');
 shell
