@@ -282,7 +282,7 @@ var d = (function () {
 
 __mAHhpP5JgWM51xZULH78ZjhNMuls84Ek6tMtnqKJqRA
 
-meta::code('divergence-rebase-lib', <<'__ORsjvYSp+eCdPeX1F2aZKl5dJoJZpuC7HTlzLD5YW4s');
+meta::code('divergence-rebase-lib', <<'__g6O4lJnu1q1OEnL7kmHzReGC52iTS2DCxSk/AJFDdA0');
 Divergence Rebase module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -304,7 +304,8 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
 (function () {
   var set            = '.fold({< $0[$1] = true, $0 >}, {})'.fn(),            last = '$0[$0.length - 1]'.fn(),  qw = '.split(/\\s+/)'.fn(),
-        r = d.rebase =   function () {return r.init.apply (this, arguments)},   $ = null,                       s = '$0 === undefined ? "" : $0.toString()'.fn();
+        r = d.rebase =   function () {return r.init.apply (this, arguments)},   $ = null,
+        s            =   function (x) {if (x === undefined || x === null) return ''; var s = x.toString(); return s.charAt(0) === '@' ? s.substring (1) : s};
 
   d.init (r, {precedence: {'function':1, '[!':1, '.':1, '(!':1, 'new':2, 'u++':3, 'u--':3, '++':3, '--':3, 'typeof':3, 'u~':3, 'u!':3, 'u+':3, 'u-':3, '*':4, '/':4, '%':4,
                            '+':5, '-':5, '<<':6, '>>':6, '>>>':6, '<':7, '>':7, '<=':7, '>=':7, 'instanceof':7, 'in':7, '==':8, '!=':8, '===':8, '!==':8, '&':9, '^':10, '|':11, '&&':12,
@@ -314,12 +315,13 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
                    unary: set(qw('u++ u-- ++ -- u+ u- u! u~ new typeof var case try finally throw return case else delete void import export ( [ { ?:')),
                syntactic: set(qw('case var if while for do switch return throw delete export import try catch finally void with else function new typeof in instanceof')),
+               statement: set(qw('case var if while for do switch return throw delete export import try catch finally void with else')),
                    ident: set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$_'.split ('')),                  punct: set('+-*/%&|^!~=<>?:;.,'.split ('')),
                    right: set(qw('= += -= *= /= %= &= ^= |= <<= >>= >>>= u~ u! new typeof u+ u- u++ u-- ++ --')),            openers: {'(':')', '[':']', '{':'}', '?':':'},
      implicit_assignment: set(qw('++ -- u++ u--')),                                                                       sandwiches: set(qw('$ $$ $$$ _ __ ___ _$ _$$ __$')),
-                 literal: set(qw('= ++ -- u++ u-- (! [! . ?: , ? ( { [ === !== ; : && ||')),                            sandwich_ops: set(qw('+ - * / % ^ | & << >> >>> < >')),
-           prefix_binary: set(qw('if function catch for switch with')),                                                      closers: {')':'(', ']':'[', '}':'{', ':':'?:'},
-            translations: {'u+':'+', 'u-':'-', 'u~':'~', 'u!':'!', 'u--':'--', 'u++':'++'},                                 arity_of: '$0.unary[$1] ? 1 : $1 === "?" ? 3 : 2'.fn(r),
+                 literal: set(qw('= ++ -- u++ u-- (! [! . ?: , ? u! ( { [ === !== ; : && ||')),                         sandwich_ops: set(qw('+ - * / % ^ | & << >> >>> < >')),
+           prefix_binary: set(qw('if function catch for switch with while')),                                                closers: {')':'(', ']':'[', '}':'{', ':':'?:'},
+            translations: {'u+':'+', 'u-':'-', 'u~':'~', 'u!':'!', 'u--':'--', 'u++':'++'},                                 arity_of: '$0.unary[$1] ? 1 : $1 == "?" ? 3 : 2'.fn(r),
            lvalue_assign: set(qw('+= -= *= /= %= ^= |= &= <<= >>= >>>=')),                                            should_convert: '! ($0.literal[$1] || $0.syntactic[$1])'.fn(r),
 
                     init: '$0.deparse($0.transform($0.parse($1.toString())))'.fn(r),
@@ -335,41 +337,59 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
   tree. Each node gets inspected, and mapping functions can modify nodes by returning alternative values. To save space and time, I'm having macros replace structures halfway destructively
   rather than using a pure functional approach.
 
-               transform: function (t) {if (t && t.op === '(!' && t.xs[0] === 'literal') return t.xs[1];
+               transform: function (t) {if (t && t.op == '(!' && t.xs[0] == 'literal') return t.xs[1];
                                         var mapped = r.macros.fold ('$1($0) || $0', t);
-                                        mapped && mapped.xs && (mapped.xs = mapped.xs.map ('$1 && $1.op ? $0($1) : $1'.fn (r.transform)));
+                                        mapped && mapped.xs && (mapped.xs = mapped.xs.map ('$1 ? $0($1) : $1'.fn (r.transform)));
                                         return mapped},
 
   Lexing.
   The lexer is for the most part straightforward. The only tricky bit is regular expression parsing, which requires the lexer to contextualize operators and operands. I've implemented this
   logic with a expect_re flag that indicates whether the last token processed was an operator (if so, then we're expecting an operand and the next / delineates a regular expression).
 
-                   parse: function (s) {var i = 0, $_, l = s.length, token = '', expect_re = true, escaped = false, t = new r.syntax(null, '('), c = s.charAt.bind (s), openers = [],
-                                            row = 0, col = 0;
-                          while (i < l && ($_ = c(i))) {
-          col += token.length;
+  We mark the position before a token and then just increment the position. The token, then, can be retrieved by taking a substring from the mark to the position. This eliminates the need for
+  intermediate concatenations. In a couple of cases I've gone ahead and done them anyway -- these are for operators, where we grab the longest contiguous substring that is defined. I'm not to
+  worried about the O(n^2) complexity due to concatenation; they're bounded by four characters.
+
+  Retrieving the Cartesian coordinates of the token is not difficult provided that we have a list of line lengths. We can then convert that list to a cumulative measure to enable binary
+  searching. I realize this is more elaborate than necessary given that the lexer is streaming (and thus would never need to recover old line lengths), but having to keep track of each newline
+  that occurs while reading the input is probably more expensive than the overhead incurred by O(log n) jumps every so often.
+
+                   parse: function (s) {var mark = 0, i = 0, $_, l = s.length, token = '', expect_re = true, escaped = false, t = new r.syntax(null, '('), c = s.charAt.bind (s), openers = [],
+                                             precedence = r.precedence, ident = r.ident, punct = r.punct,
+                                            line_breaks = [0].concat (s.split('\n').map('.length')), lb = 1,
+                                          located_token = function () {var jump = lb << 1, l = 0, r = new String (token);
+                                                                       while (jump >>= 1) mark >= line_breaks[l + jump] && (l += jump);
+                                                                       return r.line = l + 1, r.character = mark - line_breaks[l], r};
+
+                          while ((lb <<= 1) < line_breaks.length);
+                          for (var j = 0, lj = line_breaks.length, total = -1; j < lj; ++j) line_breaks[j] = total += line_breaks[j] + 1;
+
+                          while ((mark = i) < l && ($_ = c(i))) {
           escaped = token = '';
-               if                   (' \n\r\t'.indexOf ($_) > -1)                                                                        ++i, ++col, row += $_ === '\n', col *= $_ !== '\n';
-          else if                  ('([{?:}])'.indexOf ($_) > -1)                                                                        expect_re = '([{?:'.indexOf (token = $_) > -1, ++i;
-          else if    ($_ === '/' && c(i + 1) === '*' && (i += 2))  while                  (c(++i) !== '/' || c(i - 1) !== '*' || ! ++i);
-          else if                ($_ === '/' && c(i + 1) === '/')  while                        (($_ = c(++i)) !== '\n' && $_ !== '\r');
-          else if ($_ === '/' &&    expect_re &&  (token = '/'))  {while          (($_ = c(++i)) !== '/' || escaped || ! (token += $_))  expect_re = ! (token += $_), escaped = ! escaped && $_ === '\\';
-                                                                   while                                         (r.ident[$_ = c(++i)])  token += $_}
-          else if ($_ === '"' && ! (expect_re = ! (token = '"')))  while (($_ = c(++i)) !== '"' || escaped || ! ++i || ! (token += $_))  token += $_, escaped = ! escaped && $_ === '\\';
-          else if ($_ === "'" && ! (expect_re = ! (token = "'")))  while (($_ = c(++i)) !== "'" || escaped || ! ++i || ! (token += $_))  token += $_, escaped = ! escaped && $_ === '\\';
-          else if     (expect_re && r.punct[$_] && (token = 'u'))  while               (r.punct[$_ = c(i)] && r.precedence[token + $_])  token += $_, ++i;
-          else if                                   (r.punct[$_])  while               (r.punct[$_ = c(i)] && r.precedence[token + $_])  expect_re = !! (token += $_), ++i;
-          else                                                     while                                           (r.ident[$_ = c(i)])  expect_re = !! r.precedence[token += $_], ++i;
 
-          if (! token) continue;
-          token.row = row, token.col = col;
+               if                                (' \n\r\t'.indexOf ($_) > -1)                                                       {++i; continue}
+          else if                               ('([{?:}])'.indexOf ($_) > -1)                                                        expect_re = '([{:?'.indexOf ($_) > -1, ++i;
+          else if                 ($_ === '/' && c(i + 1) === '*' && (i += 2)) {while (c(++i) !== '/' || c(i - 1) !== '*' || ! ++i);  continue}
+          else if                             ($_ === '/' && c(i + 1) === '/') {while       (($_ = c(++i)) !== '\n' && $_ !== '\r');  continue}
+          else if ($_ === '/' && expect_re && ! (expect_re = ! (token = '/'))) {while            (($_ = c(++i)) !== '/' || escaped)   escaped = ! escaped && $_ === '\\';
+                                                                                while                               (ident[c(++i)]);}
+          else if              ($_ === '"' && ! (expect_re = ! (token = '"')))  while   (($_ = c(++i)) !== '"' || escaped || ! ++i)   escaped = ! escaped && $_ === '\\';
+          else if              ($_ === "'" && ! (expect_re = ! (token = "'")))  while   (($_ = c(++i)) !== "'" || escaped || ! ++i)   escaped = ! escaped && $_ === '\\';
+          else if                    (expect_re && punct[$_] && (token = 'u'))  while  (punct[$_ = c(i)] && precedence[token + $_])   token += $_, ++i;
+          else if                            (punct[$_] && (expect_re = true))  while  (punct[$_ = c(i)] && precedence[token + $_])   token += $_, ++i;
+          else                                                                 {while                               (ident[c(++i)]);  expect_re = precedence.hasOwnProperty (token = s.substring(mark, i))}
 
-               if          (t.is_value() && '[('.indexOf (token) > -1)  openers.push (t = t.push_op (token + '!').graft (token));
-          else if (($_ = r.closers[token]) && last(openers).op === $_)  t = openers.pop().parent;
-          else if                                      (token === '?')  openers.push (t = t.push_op (token).graft ('?:'));
-          else if                                   (r.openers[token])  openers.push (t = t.graft (token));
-          else if                                (r.precedence[token])  t = t.push_op (token);
-          else                                                          t.push_value (token);
+          expect_re && token.charAt(0) === 'u' || (token = s.substring (mark, i));
+          token in {} && (token = '@' + token);
+          ! t.is_value() && (token === 'u++' || token === 'u--') && (token = token.substring (1));    // Workaround for postfix ++ and --
+
+               if                (t.is_value() && r.statement[token])  t = t.push_op(';').push_op (located_token());
+          else if         (t.is_value() && '[('.indexOf (token) > -1)  openers.push (t = t.push_op (token + '!').graft (located_token()));
+          else if (($_ = r.closers[token]) && last(openers).op == $_)  t = openers.pop().parent;
+          else if                                     (token === '?')  openers.push (t = t.push_op (located_token()).graft ('?:'));
+          else if                                  (r.openers[token])  openers.push (t = t.graft (located_token()));
+          else if                                 (precedence[token])  t = t.push_op (located_token());
+          else                                                         t.push_value (located_token());
                           }
                           return t.top()},
 
@@ -387,15 +407,15 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
                   syntax: '@parent = $0, @op = $1, @xs = $2 || [], $_'.ctor ({
                            is_value: '@xs.length >= $0.arity_of(@op)'.fn(r),
-                         push_value: '! @is_value() ? (@xs.push($0), $0) : ("The token " + $0 + " is one too many for the tree " + @toString() + ".").fail()'.fn(),
+                         push_value: '! @is_value() ? (@xs.push($0), $0) : ("The token " + $0 + " is one too many for the tree " + $_ + " in the context " + $_.top() + ".").fail()'.fn(),
                           with_node: '$0 && ($0.parent = $_), @push_value($0), $_'.fn(),
-                            push_op: '$0.precedence[$1] - !! $0.right[$1] < $0.precedence[@op] ? @graft($1) : @hand_to_parent($1)'.fn(r),
+                            push_op: '$0.precedence[$1] - !! ($0.right[$1] || $0.syntactic[$1]) < $0.precedence[@op] ? @graft($1) : @hand_to_parent($1)'.fn(r),
                               graft: '@push_value(@is_value() ? new $0.syntax($_, $1).with_node(@xs.pop()) : new $0.syntax($_, $1))'.fn(r),
                      hand_to_parent: '@parent ? @parent.push_op($0) : "Syntax trees should have a minimal-precedence container".fail()'.fn(),
                                 top: '@parent ? @parent.top() : $_'.fn(),
                            toString:  function () {return '([{'.indexOf(this.op) > -1 ? this.op + s(this.xs[0]) + r.openers[this.op] :
-                                                                     this.op ===  '?' ? s(this.xs[0]) + ' ? ' + s(this.xs[1].xs[0]) + ' : ' + s(this.xs[2]) :
-                                                 this.op === '(!' || this.op === '[!' ? s(this.xs[0]) + s(this.xs[1]) :
+                                                                      this.op ==  '?' ? s(this.xs[0]) + ' ? ' + s(this.xs[1].xs[0]) + ' : ' + s(this.xs[2]) :
+                                                   this.op == '(!' || this.op == '[!' ? s(this.xs[0]) + s(this.xs[1]) :
                                                        r.implicit_assignment[this.op] ? '(' + (this.op.charAt(0) === 'u' ? this.op.substring(1) + s(this.xs[0]) : s(this.xs[0]) + this.op) + ')' :
                                                                      r.unary[this.op] ? (r.translations[this.op] || this.op) + ' ' + s(this.xs[0]) :
                                                              r.prefix_binary[this.op] ? this.op + ' ' + s(this.xs[0]) + ' ' + s(this.xs[1]) :
@@ -410,13 +430,13 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
     Since the left-hand side of +=, -=, etc. must be an lvalue, we can't say something like x['+='](y) and expect anything useful. So instead of overloading the operator, we just replace it with
     the longhand x = x + y, and let the '+' operator get replaced by the method call.
 
-          function (e) {return r.lvalue_assign[e.op] ? new r.syntax(null, "=", [e.xs[0], new r.syntax(null, e.op.substring(0, e.op.length - 1), e.xs)]) : e},
+          function (e) {return e.xs && r.lvalue_assign[e.op] ? new r.syntax(null, "=", [e.xs[0], new r.syntax(null, e.op.substring(0, e.op.length - 1), e.xs)]) : e},
 
     Identifier sandwiching.
     Certain identifiers can be sandwiched into binary operators as if they were part of the operator name. Most binary operators are candidates for sandwiching, and several identifiers are
     included by default (see the sandwiches hash above). This could be optimized by using in-place rewriting, but using sandwich operators is not terribly common.
 
-          function (e) {return r.sandwich_ops[e.op] ?
+          function (e) {return e.xs && r.sandwich_ops[e.op] ?
             e.xs[1] && e.xs[1].op && r.sandwich_ops[e.xs[1].op] && r.sandwiches[e.xs[1].xs[0]] ? new r.syntax(e.parent, e.op + e.xs[1].xs[0] + e.xs[1].op, [e.xs[0], e.xs[1].xs[1]]) :
             e.xs[0] && e.xs[0].op && r.sandwich_ops[e.xs[0].op] && r.sandwiches[e.xs[0].xs[1]] ? new r.syntax(e.parent, e.xs[0].op + e.xs[0].xs[1] + e.op, [e.xs[0].xs[0], e.xs[1]]) :
             e : e},
@@ -430,15 +450,22 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
       | (x, y) >$> x + 1        // valid
       | x, y >$> x + 1          // parses as x, (y >$> x + 1)
 
-          function (e) {return e.op === '>$>' ? new r.syntax(e.parent, 'function').with_node (e.xs[0].op === '(' ? e.xs[0] : new r.syntax (null, '(', [e.xs[0]])).
-                                                                                   with_node (new r.syntax (null, '{').with_node (new r.syntax (null, 'return').with_node (e.xs[1]))) : e},
+          function (e) {return e.op == '>$>' ? new r.syntax(e.parent, 'function').with_node (e.xs[0].op == '(' ? e.xs[0] : new r.syntax (null, '(', [e.xs[0]])).
+                                                                                  with_node (new r.syntax (null, '{').with_node (new r.syntax (null, 'return').with_node (e.xs[1]))) : e},
+
+    Comments.
+    Structural comments can be useful for removing chunks of code or for getting comments through SpiderMonkey's parse-deparse cycle (SpiderMonkey, and perhaps other JS interpreters, removes
+    comments between evaling and serializing a function). Either way, the syntax is just like literal(), except that the result will be replaced with the value 'undefined' instead of evaluated
+    normally.
+
+          function (e) {return e.op == '(!' && e.xs && e.xs[0] == 'comment' ? 'undefined' : e},
 
     Operator overloading.
     Once we're done with all of the preprocessing we can actually replace the operators with method calls. I'm cheating just a bit here; normally you would encase the operation inside a [ node
     after wrapping it as a string. However, I'm being lazy and making the excuse that maybe later on you want to detect proper method calls from generated ones; so the right-hand side of the
     [! will not be what you expect; rather, it will be a single string containing the text [">$$>"] (or some other operator).
 
-          function (e) {return r.should_convert (e.op) ?
+          function (e) {return e.op && r.should_convert (e.op) ?
             new r.syntax(e.parent, "(!").with_node(new r.syntax(null, "[!", [e.xs[0], '["' + e.op + '"]'])).with_node(new r.syntax(null, '(', [e.xs[1]])) : e}]});
 
   Operator compatibility.
@@ -449,7 +476,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
                            operators: {plus:'+', minus:'-', times:'*', over:'/', modulo:'%', lt:'<', gt:'>', le:'<=', ge:'>=', eq:'==', ne:'!=', req:'===', rne:'!==', and:'&&', or:'||', xor:'^',
                                        bitand:'&', bitor:'|', then:',', lshift: '<<', rshift: '>>', rushift: '>>>'}},
                   unary: {transforms: {'$0': '$0($1) + "$_"'.fn(translate), '$0 + "_fn"': '"{|f| " + $0($1) + "f.fn.apply($_,@_)|}.fn($_.fn())"'.fn(translate)},
-                           operators: {not:'!', notnot:'!!', complement:'~', negative:'u-', positive:'u+'}}};
+                           operators: {complement:'u~', negative:'u-', positive:'u+'}}};
 
   d.map (d.operators, function (_, os) {
     d.map (os.transforms, function (nt, vt) {d.functions (d.map (os.operators, function (n, v) {return d.init (nt.fn()(v).maps_to (vt.fn()(v).fn()), nt.fn()(n).maps_to (vt.fn()(v).fn()))}))})});
@@ -461,21 +488,51 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
   r.enable_inline_macro = (function (enabled) {return function () {enabled || (enabled = !! d.inline_macros.push ('$0.toString()'.compose (r.transform).compose (r.parse)))}}) (false)}) ();
 
-__ORsjvYSp+eCdPeX1F2aZKl5dJoJZpuC7HTlzLD5YW4s
+__g6O4lJnu1q1OEnL7kmHzReGC52iTS2DCxSk/AJFDdA0
 
-meta::code('main', <<'__ZR1KLrrBkeDBuR1KKyQT6tRTkjpxcAVThg1BhFDGg0U');
+meta::code('main', <<'__LKdLl8rikdLglnEob4eBPpXW5WK/JHsCyjEEqOghwpw');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
+This debug module enables expression-level debugging and tracing for functions. It records history (controlled by history-recording commands) and lets you replay sequences of events or
+systematically search through them. Note that this can be arbitrarily memory-intensive; recording every single expression that goes through a system is an expensive way to debug things. To
+compensate, there are calls you can make to start and stop tracing as your program is running. You can also set triggers depending on program values and use a sliding window.
 
-__ZR1KLrrBkeDBuR1KKyQT6tRTkjpxcAVThg1BhFDGg0U
+The idea here is that a program evaluates expressions to achieve things. If we have a record of those evaluations, we can mostly reconstruct what the program was doing. The only trouble is
+that we won't have a complete record -- mutable state means that even if we capture a reference to some value we aren't guaranteed that it will be in the same state as it was when we captured
+it. I'm getting around this by using a deep_clone() function, which takes a deep snapshot of a value that includes encoding cyclic references. This is a moderately expensive operation,
+especially from a memory perspective (and it probably doesn't work on things which don't have proper constructors, such as DOM nodes). It also references functions instead of copying them,
+since closure state isn't first-class.
+
+Note: This module makes extensive use of gensyms. These all start with gensym_ and end with a random number in base-36. If you are in the habit of using such identifiers, then you have a
+one-in-a-billion chance of breaking something (and your coding style could probably be improved too :). In any case, you can change the gensym prefix by saying d.debug.gensym_prefix = 'foo',
+for instance.
+
+d.rebase (function () {
+  var t = d.debug = function () {return d.debug.init (this, arguments)}, global = this;
+  
+  d.init (t, {ring_buffer: '@size = $0, @elements = $1 || [], @position = 0'.fn().ctor ({'<<': '@elements[@position = @position + 1 % @size] = $0, $_'.fn(),
+                                                                                   'to_array': '@elements.slice(@position).concat (@elements.slice(0, @position))'.fn()}),
+            gensym_prefix: 'gensym_',
+           random_integer: '(Math.random() * (1 << 30)) >>> 0'.fn(),
+                   gensym:  function (s) {var n = t.random_integer(), s = t.gensym_prefix + (s || ''); while (s + n.toString(36) in global) n = t.random_integer(); return s + n.toString(36)},
+
+               deep_clone:  function (v) {var mark = t.gensym('mark_'), marked = [],
+                                              traverse = function (x) {return ! x ? x : x[mark] ? marked[x[mark] - 1] :
+                         x.constructor === String || x.constructor === Number || x.constructor === Boolean ? x :
+                                                                                x.constructor ===    Array ? (x[mark] = marked.push(x)) && x.map(traverse) :
+                                                                                x.constructor === Function ? (x[mark] = marked.push(x)) && x :
+                                                                                                             (x[mark] = marked.push(x)) && d.map(x, '$1.maps_to($0($2))'.fn(traverse))};
+                                          return traverse (v)}});
+}) ();
+__LKdLl8rikdLglnEob4eBPpXW5WK/JHsCyjEEqOghwpw
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
 :: get main
 __UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0
 
-meta::code('test', <<'__m8s0hM3YGt+Rg87awmbMd0oIBfOOAXs22+hwoUbslbs');
+meta::code('test', <<'__Mlcz3xH2FCjpTi4y/OLr2rhKpqRaCgkn4eD8g7jlcsQ');
 Divergence debug unit tests | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -484,7 +541,8 @@ Licensed under the terms of the MIT source code license
 :: get main
 :: get test-utils
 
-__m8s0hM3YGt+Rg87awmbMd0oIBfOOAXs22+hwoUbslbs
+  print (d.debug.deep_clone ({foo: 'bar'}).foo);
+__Mlcz3xH2FCjpTi4y/OLr2rhKpqRaCgkn4eD8g7jlcsQ
 
 meta::code('test-utils', <<'__y0hvweWKk7wy9bm5fJfhHpJ0k7OOEIwhA2vuE7aAEEc');
 Unit test utilities.
@@ -550,10 +608,12 @@ meta::function('code', <<'__NBNecoJ9JVwyGbA+8LrNYjQKQyQOxdFAkjgZ4ueT5QA');
 join "\n\n", map preprocess(retrieve("code::$_")), @_;
 __NBNecoJ9JVwyGbA+8LrNYjQKQyQOxdFAkjgZ4ueT5QA
 
-meta::function('compile', <<'__tsrLgH5hL4Tp7+ZOJFF6lKLc+ptaJ07fn4Z3RV3z2cM');
-file::write('divergence.debug.js', unlit('main'));
+meta::function('compile', <<'__MShrOUjQAAUpKKMX6pRqtKv89ZfBJ3nEopLXg2ulZXo');
+file::write('divergence.js',            unlit('divergence-lib'));
+file::write('divergence.rebase.js',     unlit('divergence-rebase-lib'));
+file::write('divergence.debug.js',      unlit('main'));
 file::write('divergence.debug.test.js', unlit('test'));
-__tsrLgH5hL4Tp7+ZOJFF6lKLc+ptaJ07fn4Z3RV3z2cM
+__MShrOUjQAAUpKKMX6pRqtKv89ZfBJ3nEopLXg2ulZXo
 
 meta::function('cp', <<'__yn1SQkcEk6o+gnuCy3QGVFtQb2piaCoUdJPGUkLjpD4');
 my ($from, $to) = @_;
