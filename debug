@@ -282,7 +282,7 @@ var d = (function () {
 
 __mAHhpP5JgWM51xZULH78ZjhNMuls84Ek6tMtnqKJqRA
 
-meta::code('divergence-rebase-lib', <<'__g6O4lJnu1q1OEnL7kmHzReGC52iTS2DCxSk/AJFDdA0');
+meta::code('divergence-rebase-lib', <<'__16dv7w0zB1h9tAdgZtrVYmlQKDbQ+xEL/TrrZaNq1zA');
 Divergence Rebase module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -487,10 +487,9 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
   enable it like this:
 
   r.enable_inline_macro = (function (enabled) {return function () {enabled || (enabled = !! d.inline_macros.push ('$0.toString()'.compose (r.transform).compose (r.parse)))}}) (false)}) ();
+__16dv7w0zB1h9tAdgZtrVYmlQKDbQ+xEL/TrrZaNq1zA
 
-__g6O4lJnu1q1OEnL7kmHzReGC52iTS2DCxSk/AJFDdA0
-
-meta::code('main', <<'__LKdLl8rikdLglnEob4eBPpXW5WK/JHsCyjEEqOghwpw');
+meta::code('main', <<'__CHmnSsdrAvKVtpz7EYPsixExkW30nhVKmcA7m9z/ti0');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -502,7 +501,7 @@ The idea here is that a program evaluates expressions to achieve things. If we h
 that we won't have a complete record -- mutable state means that even if we capture a reference to some value we aren't guaranteed that it will be in the same state as it was when we captured
 it. I'm getting around this by using a deep_clone() function, which takes a deep snapshot of a value that includes encoding cyclic references. This is a moderately expensive operation,
 especially from a memory perspective (and it probably doesn't work on things which don't have proper constructors, such as DOM nodes). It also references functions instead of copying them,
-since closure state isn't first-class.
+since closure state isn't first-class and thus can't be reproduced.
 
 Note: This module makes extensive use of gensyms. These all start with gensym_ and end with a random number in base-36. If you are in the habit of using such identifiers, then you have a
 one-in-a-billion chance of breaking something (and your coding style could probably be improved too :). In any case, you can change the gensym prefix by saying d.debug.gensym_prefix = 'foo',
@@ -519,20 +518,29 @@ d.rebase (function () {
 
                deep_clone:  function (v) {var mark = t.gensym('mark_'), marked = [],
                                               traverse = function (x) {return ! x ? x : x[mark] ? marked[x[mark] - 1] :
-                         x.constructor === String || x.constructor === Number || x.constructor === Boolean ? x :
+                        x.constructor === String || x.constructor === Number || x.constructor ===  Boolean ? x :
                                                                                 x.constructor ===    Array ? (x[mark] = marked.push(x)) && x.map(traverse) :
                                                                                 x.constructor === Function ? (x[mark] = marked.push(x)) && x :
-                                                                                                             (x[mark] = marked.push(x)) && d.map(x, '$1.maps_to($0($2))'.fn(traverse))};
-                                          return traverse (v)}});
+                                                                                                             (x[mark] = marked.push(x)) && d.map(x, '$1.maps_to($0($2))'.fn(traverse))},
+                                                unmark = function (x) {if                                                                               (! x) return null;
+                                                                       if                                                                           (x[mark]) delete x[mark];
+                                                                       if (x.constructor === String || x.constructor === Number || x.constructor === Boolean) return null;
+                                                                       if                                                           (x.constructor === Array) return x.each (unmark);
+                                                                       d.map (x, unmark.compose(1))},
+                                                result = traverse (v);
+                                          unmark (v);
+                                          return result}});
+
+
 }) ();
-__LKdLl8rikdLglnEob4eBPpXW5WK/JHsCyjEEqOghwpw
+__CHmnSsdrAvKVtpz7EYPsixExkW30nhVKmcA7m9z/ti0
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
 :: get main
 __UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0
 
-meta::code('test', <<'__Mlcz3xH2FCjpTi4y/OLr2rhKpqRaCgkn4eD8g7jlcsQ');
+meta::code('test', <<'__LWtQRnegwqG4N3aKyO1Yq6b4h/1p+WiG5Gws0LJ25+g');
 Divergence debug unit tests | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -541,8 +549,10 @@ Licensed under the terms of the MIT source code license
 :: get main
 :: get test-utils
 
-  print (d.debug.deep_clone ({foo: 'bar'}).foo);
-__Mlcz3xH2FCjpTi4y/OLr2rhKpqRaCgkn4eD8g7jlcsQ
+  var obj = {foo: 'bar'};
+  print (d.keys (d.debug.deep_clone (x)));
+  print (d.keys (d.debug.deep_clone (x)));
+__LWtQRnegwqG4N3aKyO1Yq6b4h/1p+WiG5Gws0LJ25+g
 
 meta::code('test-utils', <<'__y0hvweWKk7wy9bm5fJfhHpJ0k7OOEIwhA2vuE7aAEEc');
 Unit test utilities.
