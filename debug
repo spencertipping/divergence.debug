@@ -488,7 +488,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
 __QZ+SOCTVQIQuQgjRkxf1vYUi/uPwKKMfWDcopWOg2Lk
 
-meta::code('main', <<'__ZY/7KpS/n02+CrUWmYbsR+3wFK8IQ1CF4JT3BdDdE5Q');
+meta::code('main', <<'__V2BsGzvqzfTXkLhSO1WfwM7KBeNinK0NvSUxngaK2X8');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -516,15 +516,16 @@ d.rebase (function () {
                    gensym:  function (s) {var n = t.random_integer(), s = t.gensym_prefix + (s || ''); while (s + n.toString(36) in global) n = t.random_integer(); return s + n.toString(36)},
 
                deep_clone:  function (v) {var mark = t.gensym('mark_'), marked = [],
-                                          traverse = function (x) {return ! x ? x : x[mark] ? marked[x[mark] - 1] :
-                    x.constructor === String || x.constructor === Number || x.constructor ===  Boolean ? x :
+                                         primitive = function (x) {return x.constructor === String || x.constructor === Number || x.constructor === Boolean},
+                                          traverse = function (x) {return ! x || primitive(x) ? x : x[mark] ? marked[x[mark] - 1] :
                                                                             x.constructor ===    Array ? (x[mark] = marked.push(x)) && x.map(traverse) :
                                                                             x.constructor === Function ? (x[mark] = marked.push(x)) && x :
-                                                                                                         (x[mark] = marked.push(x)) && d.map(x, '$2 === $1 ? {} : $2.maps_to($0($3))'.fn(traverse, mark))},
-                                            unmark = function (x) {if                                                                               (! x) return null;
-                                                                   if                                                                           (x[mark]) delete x[mark];
-                                                                   if (x.constructor === String || x.constructor === Number || x.constructor === Boolean) return null;
-                                                                   if                                                           (x.constructor === Array) return x.each (unmark);
+                                                                                                         (x[mark] = marked.push(x)) &&
+                                                                                                           d.map(x, '$2 === $1 ? {} : $2.maps_to($0($3))'.fn(traverse, mark))},
+                                            unmark = function (x) {if                     (! x) return null;
+                                                                   if                 (x[mark]) delete x[mark];
+                                                                   if            (primitive(x)) return null;
+                                                                   if (x.constructor === Array) return x.each (unmark);
                                                                    d.map (x, unmark.compose(1))},
                                             result = traverse (v);
                                           unmark (v);
@@ -532,7 +533,7 @@ d.rebase (function () {
 
 
 }) ();
-__ZY/7KpS/n02+CrUWmYbsR+3wFK8IQ1CF4JT3BdDdE5Q
+__V2BsGzvqzfTXkLhSO1WfwM7KBeNinK0NvSUxngaK2X8
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
