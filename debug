@@ -215,7 +215,7 @@ something most people will normally do. In the future there may be a locking mec
 
 __3uM+GRhsAnxE6BFehM2nkGju4J93JQjqONxKbpE0Cdg
 
-meta::code('divergence-lib', <<'__mAHhpP5JgWM51xZULH78ZjhNMuls84Ek6tMtnqKJqRA');
+meta::code('divergence-lib', <<'__mgOL36mfzZ3wiz9iNpNvE5zzifLo0jmpyKjyxwb7B5A');
 Divergence core library | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -231,7 +231,7 @@ var d = (function () {
                                    macro_expand: function    (s) {return d.inline_macros.fold (function (s, m) {return m(s)}, s)},
                                           alias: function (s, f) {d.aliases[s] = f.fn(); return d},
                                           macro: function (r, f) {d.inline_macros.push (r.maps_to (f)); c = {}; return d},
-                                          trace: function    (x) {d.tracer && d.tracer ([x].concat (d.arr (arguments)).join (', ')); return x}});
+                                          trace: function    (x) {d.tracer && d.tracer (d.arr (arguments).join (', ')); return x}});
 
   d (String.prototype, {maps_to: function (v) {var result = {}; result[this] = v; return result},
                          lookup: function  () {return '$0.split(".").fold("$0[$1]", $1)'.fn(this)},
@@ -280,9 +280,9 @@ var d = (function () {
 
   return d}) ();
 
-__mAHhpP5JgWM51xZULH78ZjhNMuls84Ek6tMtnqKJqRA
+__mgOL36mfzZ3wiz9iNpNvE5zzifLo0jmpyKjyxwb7B5A
 
-meta::code('divergence-rebase-lib', <<'__h+vwEU6rJaSSU6UK3y/xCB7EeyMo2hJqwpf8Iwyxlps');
+meta::code('divergence-rebase-lib', <<'__bCinGvPuNTlEbsCqI3jgaNiKh7nnATN83QQgAz6+RJ4');
 Divergence Rebase module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -304,10 +304,10 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
 (function () {
   var set            = '.fold({< $0[$1] = true, $0 >}, {})'.fn(),            last = '$0[$0.length - 1]'.fn(),  qw = '.split(/\\s+/)'.fn(),
-        r = d.rebase =   function () {return r.init.apply (this, arguments)},   $ = null,
+        r = d.rebase =   function  () {return r.init.apply (this, arguments)},  $ = null,
         s            =   function (x) {if (x === undefined || x === null) return ''; var s = x.toString(); return s.charAt(0) === '@' ? s.substring (1) : s};
 
-  d.init (r, {precedence: {'function':1, '[!':1, '.':1, '(!':1, 'new':2, 'u++':3, 'u--':3, '++':3, '--':3, 'typeof':3, 'u~':3, 'u!':3, 'u+':3, 'u-':3, '*':4, '/':4, '%':4,
+  d.init (r, {precedence: {'function':1, '[!':1, '.':1, '(!':1, 'new':2, 'u++':3, 'u--':3, '++':3, '--':3, 'typeof':3, 'u~':3, 'u!':3, '!':3, '~':3, 'u+':3, 'u-':3, '*':4, '/':4, '%':4,
                            '+':5, '-':5, '<<':6, '>>':6, '>>>':6, '<':7, '>':7, '<=':7, '>=':7, 'instanceof':7, 'in':7, '==':8, '!=':8, '===':8, '!==':8, '&':9, '^':10, '|':11, '&&':12,
                            '||':13, '?':14, '=':15, '+=':15, '-=':15, '*=':15, '/=':15, '%=':15, '&=':15, '|=':15, '^=':15, '<<=':15, '>>=':15, '>>>=':15, 'case':16, ':':17, ',':18, 'var':19,
                            'if':19, 'while':19, 'for':19, 'do':19, 'switch':19, 'return':19, 'throw':19, 'delete':19, 'export':19, 'import':19, 'try':19, 'catch':19, 'finally':19, 'void':19,
@@ -316,13 +316,16 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
                    unary: set(qw('u++ u-- ++ -- u+ u- u! u~ new typeof var case try finally throw return case else delete void import export ( [ { ?:')),
                syntactic: set(qw('case var if while for do switch return throw delete export import try catch finally void with else function new typeof in instanceof')),
                statement: set(qw('case var if while for do switch return throw delete export import try catch finally void with else')),
+               connected: set(qw('else catch finally')),
                    ident: set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$_'.split ('')),                  punct: set('+-*/%&|^!~=<>?:;.,'.split ('')),
                    right: set(qw('= += -= *= /= %= &= ^= |= <<= >>= >>>= u~ u! new typeof u+ u- u++ u-- ++ --')),            openers: {'(':')', '[':']', '{':'}', '?':':'},
      implicit_assignment: set(qw('++ -- u++ u--')),                                                                       sandwiches: set(qw('$ $$ $$$ _ __ ___ _$ _$$ __$')),
-                 literal: set(qw('= ++ -- u++ u-- (! [! . ?: , ? u! ( { [ === !== ; : && ||')),                         sandwich_ops: set(qw('+ - * / % ^ | & << >> >>> < >')),
+                 literal: set(qw('= ++ -- u++ u-- (! [! . ?: , ? u! ( { [ === !== == != ; : && ||')),                   sandwich_ops: set(qw('+ - * / % ^ | & << >> >>> < >')),
            prefix_binary: set(qw('if function catch for switch with while')),                                                closers: {')':'(', ']':'[', '}':'{', ':':'?:'},
             translations: {'u+':'+', 'u-':'-', 'u~':'~', 'u!':'!', 'u--':'--', 'u++':'++'},                                 arity_of: '$0.unary[$1] ? 1 : $1 == "?" ? 3 : 2'.fn(r),
            lvalue_assign: set(qw('+= -= *= /= %= ^= |= &= <<= >>= >>>=')),                                            should_convert: '! ($0.literal[$1] || $0.syntactic[$1])'.fn(r),
+
+                alias_in: '$0.init ($1, $0.map ($2, {|h, k, v| k.maps_to (h[v] || v.fn()) |}.fn($1)))'.fn(d),
 
                     init: '$0.deparse($0.transform($0.parse($1.toString())))'.fn(r),
 
@@ -383,7 +386,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
           token in {} && (token = '@' + token);
 
                if         (t.is_value() && '[('.indexOf (token) > -1)  openers.push (t = t.push_op (token + '!').graft (located_token()));
-          else if (($_ = r.closers[token]) && last(openers).op == $_)  t = openers.pop().parent, token === '}' && t.is_value() && r.statement[t.op] && (t = t.push_op(';'));
+          else if (($_ = r.closers[token]) && last(openers).op == $_)  t = openers.pop().parent, token === '}' && t.is_value() && r.statement[t.op] && token != 'else' && (t = t.push_op(';'));
           else if                                     (token === '?')  openers.push (t = t.push_op (located_token()).graft ('?:'));
           else if                                  (r.openers[token])  openers.push (t = t.graft (located_token()));
           else if                                 (precedence[token])  t = t.push_op (located_token());
@@ -405,16 +408,22 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
                   syntax: '@parent = $0, @op = $1, @xs = $2 || [], $_'.ctor ({
                            is_value: '@xs.length >= $0.arity_of(@op)'.fn(r),
+                                map: 'new $0.syntax(null, @op, @xs.map($1).map({|t, x| x.parent = t, x |}.fn($_)))'.fn(r),
                          push_value: '! @is_value() ? (@xs.push($0), $0) : ("The token " + $0 + " is one too many for the tree " + $_ + " in the context " + $_.top() + ".").fail()'.fn(),
                           with_node: '$0 && ($0.parent = $_), @push_value($0), $_'.fn(),
                             push_op: '$0.precedence[$1] - !! ($0.right[$1] || $0.syntactic[$1]) < $0.precedence[@op] ? @graft($1) : @hand_to_parent($1)'.fn(r),
                               graft: '@push_value(@is_value() ? new $0.syntax($_, $1).with_node(@xs.pop()) : new $0.syntax($_, $1))'.fn(r),
-                     hand_to_parent: '@parent ? @parent.push_op($0) : "Syntax trees should have a minimal-precedence container".fail()'.fn(),
+                     hand_to_parent: '@parent ? @parent.push_op($0) : ("Syntax trees should have a minimal-precedence container when parsing " + $0 + " at " + $_).fail()'.fn(),
                                 top: '@parent ? @parent.top() : $_'.fn(),
-                           toString:  function () {return '([{'.indexOf(this.op) > -1 ? this.op + s(this.xs[0]) + r.openers[this.op] :
+                           toString:  function () {var left_in = function (x, ops) {return x.xs && x.xs[0] && (ops[x.xs[0].op] && x.xs[0].op ||
+                                                                                                               x.xs[0].xs && x.xs[0].xs[1] && ops[x.xs[0].xs[1].op] && x.xs[0].xs[1].op)},
+                                                      right_in = function (x, ops) {return x.xs && x.xs[1] && ops[x.xs[1].op] && x.xs[1].op},
+                                                         right = null;
+                                                   return '([{'.indexOf(this.op) > -1 ? this.op + s(this.xs[0]) + r.openers[this.op] :
                                                                       this.op ==  '?' ? s(this.xs[0]) + ' ? ' + s(this.xs[1].xs[0]) + ' : ' + s(this.xs[2]) :
                                                    this.op == '(!' || this.op == '[!' ? s(this.xs[0]) + s(this.xs[1]) :
                                                        r.implicit_assignment[this.op] ? '(' + (this.op.charAt(0) === 'u' ? this.op.substring(1) + s(this.xs[0]) : s(this.xs[0]) + this.op) + ')' :
+                                             this.xs[1] && r.connected[this.xs[1].op] ? s(this.xs[0]) + ' ' + s(this.xs[1]) :
                                                                      r.unary[this.op] ? (r.translations[this.op] || this.op) + ' ' + s(this.xs[0]) :
                                                              r.prefix_binary[this.op] ? this.op + ' ' + s(this.xs[0]) + ' ' + s(this.xs[1]) :
                                                                                         s(this.xs[0]) + ' ' + this.op + ' ' + s(this.xs[1])}}),
@@ -448,6 +457,14 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
       | (x, y) >$> x + 1        // valid
       | x, y >$> x + 1          // parses as x, (y >$> x + 1)
 
+    Note that you can't say this:
+
+      | () >$> something
+
+    The reason is that JavaScript's grammar forbids the use of () as an expression. To get around it, you can bind a throwaway variable:
+
+      | _ >$> something
+
           function (e) {return e.op == '>$>' ? new r.syntax(e.parent, 'function').with_node (e.xs[0].op == '(' ? e.xs[0] : new r.syntax (null, '(', [e.xs[0]])).
                                                                                   with_node (new r.syntax (null, '{').with_node (new r.syntax (null, 'return').with_node (e.xs[1]))) : e},
 
@@ -479,7 +496,10 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
   d.map (d.operators, function (_, os) {
     d.map (os.transforms, function (nt, vt) {d.functions (d.map (os.operators, function (n, v) {return d.init (nt.fn()(v).maps_to (vt.fn()(v).fn()), nt.fn()(n).maps_to (vt.fn()(v).fn()))}))})});
 
-  d.init (Array.prototype, d.map ({'*':'map', '%':'grep', '+':'concat', '/':'fold', '^':'flat_map'}, '$1.maps_to($0[$2])'.fn(Array.prototype)), {'<<':'@push($0), $_'});
+  r.alias_in (Array.prototype, {'*':'map', '%':'grep', '+':'concat', '/':'fold', '>>$-':'flat_map'});
+              Array.prototype['<<'] = '@push($0), $_'.fn();
+
+  r.alias_in (r.syntax.prototype, {'<<':'with_node', '*':'map'});
 
   Divergence inline macro support.
   Divergence promotes strings into functions with a macro mechanism very similar to the one here. Because of this, we can enable code transformation inside those inline macros, including
@@ -488,9 +508,9 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
   r.enable_inline_macro = (function (enabled) {return function () {enabled || (enabled = !! d.inline_macros.push ('$0.toString()'.compose (r.transform).compose (r.parse)))}}) (false)}) ();
 
-__h+vwEU6rJaSSU6UK3y/xCB7EeyMo2hJqwpf8Iwyxlps
+__bCinGvPuNTlEbsCqI3jgaNiKh7nnATN83QQgAz6+RJ4
 
-meta::code('main', <<'__aKxEZsOim8uA8jnXxln5ous3I1Trn12f8rc2IwXcM/Y');
+meta::code('main', <<'__mxV7QNSRn+qd+MPNP4eqoTik/kIKRSOeFjQGkvClYOc');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -505,17 +525,17 @@ especially from a memory perspective (and it probably doesn't work on things whi
 since closure state isn't first-class and thus can't be reproduced.
 
 Note: This module makes extensive use of gensyms. These all start with gensym_ and end with a random number in base-36. If you are in the habit of using such identifiers, then you have a
-one-in-a-billion chance of breaking something. You can change the gensym prefix by saying d.debug.gensym_prefix = 'foo', for instance.
+one-in-a-billion chance of breaking something. You can change the gensym prefix by setting d.debug.gensym_prefix.
 
 d.rebase (function () {
   var t = d.debug = _ >$> d.debug.init (this, arguments), global = this, syn = x >$> new d.rebase.syntax(null, x);
 
-  d.init (d.rebase.syntax.prototype, d.map ({'<<':'with_node'}, '$1.maps_to($0[$2])'.fn(d.rebase.syntax.prototype)));
-
   d.init (t, {ring_buffer: '@size = $0, @elements = $1 || [], @position = 0'.fn().ctor ({'<<': '@elements[@position = @position + 1 % @size] = $0, $_'.fn(),
                                                                                    'to_array': '@elements.slice(@position + 1).concat (@elements.slice(0, @position + 1))'.fn()}),
             gensym_prefix: 'gensym_',
-           random_integer:  _ >$> (Math.random() * (1 << 30)) >>> 0,
+                ring_size:  10000,
+
+           random_integer:  _ >$> Math.random() * (1 << 30) >>> 0,
                    gensym:  function (s) {var n = t.random_integer(), s = t.gensym_prefix + (s || ''); while (s + n.toString(36) in global) n = t.random_integer(); return s + n.toString(36)},
 
                deep_clone:  function (v) {var mark = t.gensym('mark_'), marked = [],
@@ -524,34 +544,35 @@ d.rebase (function () {
                                                      x.constructor ===    Array ? (x[mark] = marked.push(x)) && x.map(traverse) :
                                                      x.constructor === Function ? (x[mark] = marked.push(x)) && x :
                                                                                   (x[mark] = marked.push(x)) &&
-                                                                                    d.map(x, '$2 === $1 ? {} : $2.maps_to($0($3))'.fn(traverse, mark))),
+                                                                                    d.map(x, (k, v) >$> (k === mark ? {} : k.maps_to(traverse(v))))),
                                             unmark = function (x) {if (x) {if (x[mark]) delete x[mark]; primitive(x) || d.map (x, unmark.compose(1))}},
                                             result = traverse (v);
                                           unmark (v);
                                           return result},
 
-  default_event_ring_size:  10000,
-                  watcher: '@name = $0.gensym("watcher_hook_"), @events = new $0.ring_buffer($0.default_event_ring_size)'.fn(t).ctor ({
+                  watcher: '@name = $0.gensym("watcher_hook_"), @events = new $0.ring_buffer($1 || $0.ring_size)'.fn(t).ctor ({
                             setup_global_hook: function  () {var t = this, hook = function (index, value) {t.events << [hook.trace_points[index], value]; return value};
                                                              return global[this.name] = hook, this},
                            remove_global_hook: function  () {delete global[this.name]; return this},
+
                                 annotate_tree: function (v) {global[this.name] || this.setup_global_hook();
                                                              var           $_ = this,
                                                                  trace_points = global[this.name].trace_points = global[this.name].trace_points || [],
                                                                 annotate_tree = this.annotate_tree.bind(this),
                                                                 annotate_node = v >$> syn('(!') << $_.name << (syn('(') << (syn(',') << (trace_points.push(v) - 1) << annotate_children (v))),
-                                                            annotate_children = v >$> (v.xs * annotate_tree).fold ('$0.with_node($1)', syn(v.op)),
-                                                              should_annotate = v >$> (v.op && (v.op == '(!' || v.op == '[!' || d.rebase.should_convert(v.op)));
-                                                             return ! v ? v : should_annotate(v) ? annotate_node(v) : v.xs ? annotate_children(v) : v},
-                                     annotate: function (f) {return d.rebase.deparse (this.annotate_tree (d.rebase.parse (f.toString())))}})})}) ();
-__aKxEZsOim8uA8jnXxln5ous3I1Trn12f8rc2IwXcM/Y
+                                                            annotate_children = v >$> (v.xs * annotate_tree).fold ('$0.with_node($1)', syn(v.op));
+
+                                                             return ! v ? v : v.op ==  ? annotate_node(v) : v.xs ? annotate_children(v) : v},
+
+                                     annotate: f >$> d.rebase.deparse (this.annotate_tree (d.rebase.parse (f.toString())))})})}) ();
+__mxV7QNSRn+qd+MPNP4eqoTik/kIKRSOeFjQGkvClYOc
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
 :: get main
 __UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0
 
-meta::code('test', <<'__kzyDmeMQ/fQlhxuR2LP0A5hcuoLgG56HLOXX+w6EoU0');
+meta::code('test', <<'__lyUHdSdtJx1+Uo2I+yGqKzeYVd5i7vcKMBIyW0JCc3g');
 Divergence debug unit tests | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -564,15 +585,20 @@ Licensed under the terms of the MIT source code license
   print (d.keys (d.debug.deep_clone (x)));
   print (d.keys (d.debug.deep_clone (x)));
 
-  var w = new d.debug.watcher();
-  w.setup_global_hook();
-
+  var w         = new d.debug.watcher();
   var factorial = w.annotate (function (n) {return n > 1 ? n * factorial (n - 1) : n});
 
   print (factorial.toString ());
   print (factorial (5));
   print (w.events.to_array().join ('\n'));
-__kzyDmeMQ/fQlhxuR2LP0A5hcuoLgG56HLOXX+w6EoU0
+
+  var w2 = new d.debug.watcher();
+  var r  = d.rebase;
+  d.rebase.parse = w2.annotate (d.rebase.parse);
+  d.rebase (function (x) {return y >$> x + y});
+
+  print (w2.events.to_array().join ('\n'));
+__lyUHdSdtJx1+Uo2I+yGqKzeYVd5i7vcKMBIyW0JCc3g
 
 meta::code('test-utils', <<'__tHoTKmrPyN4cgiyxnY74uo1roOtwNmGRC87zhFQjDxg');
 Unit test utilities.
