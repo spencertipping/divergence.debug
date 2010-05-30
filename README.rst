@@ -14,7 +14,16 @@ loaded prior to loading the debug module::
   <script src='divergence.rebase.js'></script>
   <script src='divergence.debug.js'></script>
 
-Once you've got the debug module loaded, you can start debugging things.
+Once you've got the debug module loaded, you can start debugging things. You'll also want to set up a trace function::
+
+  // for HTML:
+  d.tracer = function (x) {document.getElementById ('log').appendChild (document.createTextNode (x))};
+
+  // for node.js:
+  d.tracer = require('sys').print;
+
+  // for Firefox:
+  d.tracer = console.log.bind(console);
 
 Tracing Functionals
 ===================
