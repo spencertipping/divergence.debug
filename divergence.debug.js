@@ -12,16 +12,18 @@ d.rebase (function () {
     set = xs >$> xs * '$0.maps_to(true)'.fn() / d.init, qw = s >$> s.split(/\s+/), qs = set.compose(qw);
 
   d.functions ({traced: function (options) {var f = this.fn(), options = options || {}, tracer = options.tracer || d.trace, name = options.name || 'anonymous', count = 0;
-                                            return function () {var c = ++count;
-                                                                tracer ('#{name} (#{c}) called on #{this} with [#{Array.prototype.slice.call (arguments).join (", ")}]');
-                                                                try       {var result = f.apply (this, arguments); tracer ('#{name} (#{c}) returned #{result}'); return result}
-                                                                catch (e) {tracer ('#{name} (#{c}) threw #{e}'); throw e}}}});
+                                            return d.init (function () {var c = ++count;
+                                                                        tracer ('#{name} (#{c}) called on #{this} with [#{Array.prototype.slice.call (arguments).join (", ")}]');
+                                                                        try       {var result = f.apply (this, arguments); tracer ('#{name} (#{c}) returned #{result}'); return result}
+                                                                        catch (e) {tracer ('#{name} (#{c}) threw #{e}'); throw e}},
+                                                           {original: f})}});
 
   d.init (t, {ring_buffer: '@size = $0, @elements = $1 || [], @position = -1'.fn().ctor ({'<<': '@elements[@position = @position + 1 % @size] = $0, $_'.fn(),
                                                                                     'to_array': '@elements.slice(@position + 1).concat (@elements.slice(0, @position + 1))'.fn()}),
                  reserved:  qs('break continue default'),   first_only: qs('.'),
                      stop:  qs('++ -- u++ u-- new'),       second_only: qs('function catch = : += -= *= /= %= ^= |= &= <<= >>= >>>= in'),
                      skip:  qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try catch finally void with else'),
+        protected_resolve:  qs('[! .'),
 
                     event: '@node = $0, @value = $1, @time = new Date()'.ctor ({toString: _ >$> '(#{this.node}) = (#{this.value}) at #{this.time.getTime()}'}),
 
@@ -41,6 +43,10 @@ d.rebase (function () {
                                                                                                                  t.skip[v.op] ? annotate_children(v) :
                                                                                                            t.first_only[v.op] ? syn(v.op) << annotate_tree(v.xs[0]) << v.xs[1] :
                                                                                                           t.second_only[v.op] ? syn(v.op) << v.xs[0] << annotate_tree(v.xs[1]) :
+                                                                   v.op == '(!' && v.xs[0] && t.protected_resolve[v.xs[0].op] ? annotate_node (v,
+                                                                                                                                  syn(v.op) << (syn(v.xs[0].op) << annotate_tree(v.xs[0].xs[0]) <<
+                                                                                                                                                                   v.xs[0].xs[1]) <<
+                                                                                                                                               annotate_tree (v.xs[1])) :
                                                                                                                        ! v.xs ? /^@?[A-Za-z_$][A-Za-z0-9_$]*$/.test(v) ? annotate_node(v, v) : v :
                                                                                                                                 annotate_node (v, annotate_children (v)));
                                                               return annotate_tree (v)},
