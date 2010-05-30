@@ -23,21 +23,24 @@ d.rebase (function () {
                                           stop: qs('++ -- u++ u-- new'),       second_only: qs('function catch = : += -= *= /= %= ^= |= &= <<= >>= >>>= in'),
                 ring_size:  10000,        skip: qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try catch finally void with else'),
 
-                  watcher: '@name = d.gensym("debug"), @events = new $0.ring_buffer($1 || $0.ring_size)'.fn(t).ctor ({
-                             setup_global_hook: _ >$> (global[this.name] = ((index, value) >$> (this.events << [index, value], value)).bind (this)),
+                    event: '@node = $0, @value = $1, @time = new Date()'.ctor ({toString: _ >$> '(#{this.node}) = (#{this.value}) at #{this.time.getTime()}'}),
+
+                  watcher: '@name = d.gensym("hook"), @events = new $0.ring_buffer($1 || $0.ring_size)'.fn(t).ctor ({
+                             setup_global_hook: _ >$> (global[this.name] = ((index, value) >$> (this.events << new t.event (global[this.name].trace_points[index], value), value)).bind (this)),
                             remove_global_hook: function  () {delete global[this.name]; return this},
                                  annotate_tree: function (v) {global[this.name] || this.setup_global_hook();
-                                                              var           $_ = this,
-                                                                  trace_points = global[this.name].trace_points = global[this.name].trace_points || [],
-                                                                 annotate_node = v >$> syn('(!') << $_.name << (syn('(') << (syn(',') << (trace_points.push(v) - 1) << v)),
-                                                             annotate_children = v >$> (v.xs ? (v.xs * annotate_tree).fold ((x, y) >$> x << y, syn(v.op)) : v),
-                                                                 annotate_tree = v >$> (! v || t.reserved[v] ? v :
-                                                                                                t.stop[v.op] ? annotate_node(v) :
-                                                                                                t.skip[v.op] ? annotate_children(v) :
-                                                                                          t.first_only[v.op] ? syn(v.op) << annotate_tree(v.xs[0]) << v.xs[1] :
-                                                                                         t.second_only[v.op] ? syn(v.op) << v.xs[0] << annotate_tree(v.xs[1]) :
-                                                                                                      ! v.xs ? /^@?[A-Za-z_$][A-Za-z0-9_$]*$/.test(v) ? annotate_node(v) : v :
-                                                                                                               annotate_node (annotate_children (v)));
+                                                              var $_ = this,  trace_points = global[this.name].trace_points = global[this.name].trace_points || [],
+                                                                             annotate_node = (s, v) >$> syn('(!') << $_.name << (syn('(') << (syn(',') << (trace_points.push(s) - 1) << v)),
+                                                                         annotate_children =     v  >$> (v.xs ? (v.xs * annotate_tree).fold ((x, y) >$> x << y, syn(v.op)) : v),
+                                                                             annotate_tree =     v  >$> (! v || t.reserved[v] ? v :
+                                                                                                                 t.stop[v.op] ? annotate_node(v, v) :
+                                                                                                                 t.skip[v.op] ? annotate_children(v) :
+                                                                                                           t.first_only[v.op] ? syn(v.op) << annotate_tree(v.xs[0]) << v.xs[1] :
+                                                                                                          t.second_only[v.op] ? syn(v.op) << v.xs[0] << annotate_tree(v.xs[1]) :
+                                                                                                                       ! v.xs ? /^@?[A-Za-z_$][A-Za-z0-9_$]*$/.test(v) ? annotate_node(v, v) : v :
+                                                                                                                                annotate_node (v, annotate_children (v)));
                                                               return annotate_tree (v)},
 
-                                      annotate: f >$> d.rebase.deparse (this.annotate_tree (d.rebase.parse (f)))})})}) ();
+                                      annotate: f >$> d.rebase.deparse (this.annotate_local (f)),
+                                annotate_local: f >$> this.annotate_tree (d.rebase.parse (f)).toString(),
+                                           log: _ >$> this.events.to_array()})})}) ();
