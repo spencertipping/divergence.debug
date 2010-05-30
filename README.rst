@@ -103,3 +103,19 @@ references to locally-scoped variables (hence the ``annotate_local`` method, as 
 debug module will lose that reference as well. It doesn't just lose the variables, it in fact loses the entire scope chain. In situations when you need to preserve that scope chain, you use
 ``eval``, which is dynamically scoped, in the location where the function's scope chain should be. Thus ``annotate_local``, rather than returning the annotated function, returns a regular
 string to be evaled.
+
+Tracing vs. Logging
+-------------------
+
+By default a watcher logs its functions' actions. This is more helpful for digging through the history in a paused script, but it won't tell you the exact interplay of events within a traced
+function or print things in real-time. If you need that, then you should switch the watcher to tracing mode::
+
+  watcher.use_tracing();
+  factorial (2);
+    // traces the big listing of expression values
+
+You can also specify a predicate to determine whether a log event should be printed::
+
+  watcher.use_tracing(e >$> (e.value === 1));
+  factorial (2);
+    // traces the short list

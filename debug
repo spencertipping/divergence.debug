@@ -520,7 +520,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
 __oz350IDFkZ5OwrkPczNMgbDNZ6lO8qCAv/OplMnqEuc
 
-meta::code('main', <<'__hM5N1lPIfrYH9nOlLwQNcg4N9TcVNtnMsOPjLrVP5Tw');
+meta::code('main', <<'__i8524/CPiLl6ZZGqBOx66eYkKVqz9ZJ7G1hG9RYYxHA');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -542,17 +542,21 @@ d.rebase (function () {
 
   d.init (t, {ring_buffer: '@size = $0, @elements = $1 || [], @position = -1'.fn().ctor ({'<<': '@elements[@position = @position + 1 % @size] = $0, $_'.fn(),
                                                                                     'to_array': '@elements.slice(@position + 1).concat (@elements.slice(0, @position + 1))'.fn()}),
-                                      reserved: qs('break continue default'),   first_only: qs('.'),
-                                          stop: qs('++ -- u++ u-- new'),       second_only: qs('function catch = : += -= *= /= %= ^= |= &= <<= >>= >>>= in'),
-                ring_size:  10000,        skip: qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try catch finally void with else'),
+                 reserved:  qs('break continue default'),   first_only: qs('.'),
+                     stop:  qs('++ -- u++ u-- new'),       second_only: qs('function catch = : += -= *= /= %= ^= |= &= <<= >>= >>>= in'),
+                     skip:  qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try catch finally void with else'),
 
                     event: '@node = $0, @value = $1, @time = new Date()'.ctor ({toString: _ >$> '(#{this.node}) = (#{this.value}) at #{this.time.getTime()}'}),
 
-                  watcher: '@name = d.gensym("hook"), @events = new $0.ring_buffer($1 || $0.ring_size)'.fn(t).ctor ({
-                             setup_global_hook: _ >$> (global[this.name] = ((index, value) >$> (this.events << new t.event (global[this.name].trace_points[index], value), value)).bind (this)),
-                            remove_global_hook: function  () {delete global[this.name]; return this},
-                                 annotate_tree: function (v) {global[this.name] || this.setup_global_hook();
-                                                              var $_ = this,  trace_points = global[this.name].trace_points = global[this.name].trace_points || [],
+                  watcher: '@name = d.gensym("hook"), @events = new $0.ring_buffer($1 && $1.log_size || 10000), @predicate = $1 && $1.predicate || (0).fn()'.fn(t).ctor ({
+                                   use_logging: _ >$> (global[this.name] = this.hook_function (this.log.bind   (this))),
+                                   use_tracing: p >$> (this.predicate = p || this.predicate, global[this.name] = this.hook_function (this.trace.bind (this))),
+                            remove_global_hook: function () {delete global[this.name]; this.installed_hook = null; return this},
+
+                                 hook_function: destination >$> ((index, value) >$> (destination (new t.event (this.trace_points[index], value)), value)).bind (this),
+
+                                 annotate_tree: function (v) {global[this.name] || (this.installed_hook = this.use_logging());
+                                                              var $_ = this,  trace_points = this.trace_points = this.trace_points || [],
                                                                              annotate_node = (s, v) >$> syn('(!') << $_.name << (syn('(') << (syn(',') << (trace_points.push(s) - 1) << v)),
                                                                          annotate_children =     v  >$> (v.xs ? (v.xs * annotate_tree).fold ((x, y) >$> x << y, syn(v.op)) : v),
                                                                              annotate_tree =     v  >$> (! v || t.reserved[v] ? v :
@@ -566,15 +570,17 @@ d.rebase (function () {
 
                                       annotate: f >$> d.rebase.deparse (this.annotate_local (f)),
                                 annotate_local: f >$> this.annotate_tree (d.rebase.parse (f)).toString(),
-                                           log: _ >$> this.events.to_array()})})}) ();
-__hM5N1lPIfrYH9nOlLwQNcg4N9TcVNtnMsOPjLrVP5Tw
+
+                                         trace: e >$> (this.predicate(e) && d.trace(e)),
+                                           log: e >$> (e ? this.events << e : this.events.to_array())})})}) ();
+__i8524/CPiLl6ZZGqBOx66eYkKVqz9ZJ7G1hG9RYYxHA
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
 :: get main
 __UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0
 
-meta::code('test', <<'__6L9FCSjMFDrOokz/TiBZTUG5gGaI9pwA+j9nJnn+8RU');
+meta::code('test', <<'__cmIT/esdluuMKxh4VSInjJcapMhWE3zG1+r3+fX7790');
 Divergence debug unit tests | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -600,8 +606,12 @@ Licensed under the terms of the MIT source code license
 
     d.trace ('Partial log:');
     w.log().grep (e >$> (e.value === 1)) * d.trace;
+
+    w.use_tracing();
+    d.trace ('With tracing:');
+    factorial (3);
   }) ();
-__6L9FCSjMFDrOokz/TiBZTUG5gGaI9pwA+j9nJnn+8RU
+__cmIT/esdluuMKxh4VSInjJcapMhWE3zG1+r3+fX7790
 
 meta::code('test-utils', <<'__tHoTKmrPyN4cgiyxnY74uo1roOtwNmGRC87zhFQjDxg');
 Unit test utilities.
