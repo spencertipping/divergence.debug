@@ -215,12 +215,12 @@ something most people will normally do. In the future there may be a locking mec
 
 __3uM+GRhsAnxE6BFehM2nkGju4J93JQjqONxKbpE0Cdg
 
-meta::code('divergence-lib', <<'__pRWWTKS8yxh6Vvo+2FTn+rB0xw9JTodI88KYun1GBTo');
+meta::code('divergence-lib', <<'__NQWwvv7U4KX6W7COGyQapDozhkZ2Gjl81ClB+Wg6uBA');
 Divergence core library | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
 var d = (function () {
-  var c = {}, d = function () {return d[d.default_action].apply (this, arguments)};
+  var c = {}, d = function () {return d[d.default_action].apply (this, arguments)}, gensym_count = 0;
   d.init = function (o) {for (var i = 1, l = arguments.length, $_ = null; $_ = arguments[i], i < l; ++i) if ($_.call && $_.call.apply) $_.call (o);
                                                                                                          else                          for (var k in $_) $_.hasOwnProperty (k) && (o[k] = $_[k]); return o};
   d.init (d, {inline_macros:  [],            id: function    (x) {return x},
@@ -228,14 +228,14 @@ var d = (function () {
       functional_extensions:  {},           map: function (o, f) {var x = {}; d.keys (o).each (function (k) {d.init (x, f (k, o[k]) || {})}); return x},
              default_action: 'init',       keys: function    (o) {var xs = []; for (var k in o) o.hasOwnProperty (k) && xs.push (k); return xs},
                                       functions: function     () {var as = d.arr (arguments); return d.functionals.each (function (p) {d.init.apply (this, [p].concat (as))}), d},
+                                     functional: function     () {d.arr (arguments).each (function (f) {d.functionals.push (d.init (f, d.functional_extensions))}); return this},
+                                         gensym: function    (s) {return 'gensym_' + (s || '') + (++gensym_count).toString(36)},
                                    macro_expand: function    (s) {return d.inline_macros.fold (function (s, m) {return m(s)}, s)},
-                                          alias: function (s, f) {d.aliases[s] = f.fn(); return d},
                                           macro: function (r, f) {d.inline_macros.push (r.maps_to (f)); c = {}; return d},
                                           trace: function    (x) {d.tracer && d.tracer (d.arr (arguments).join (', ')); return x}});
 
   d (String.prototype, {maps_to: function (v) {var result = {}; result[this] = v; return result},
                          lookup: function  () {return '$0.split(".").fold("$0[$1]", $1)'.fn(this)},
-                          alias: function (f) {return d.alias (this, f)},
                            fail: function  () {throw new Error (this.toString())},
                              fn: function  () {var s = this.toString(), f = c[s] || (c[s] = eval ('(function(){return ' + d.macro_expand(s) + '})')); return f.fn.apply (f, arguments)}});
 
@@ -253,7 +253,7 @@ var d = (function () {
                              fn: function  () {var xs = this, f = function () {return xs.map ('$1.fn().apply($_,$0)'.fn (arguments))}; return f.fn.apply (f, arguments)}});
 
   d (Function.prototype, {fn: function () {var f = this, xs = d.arr (arguments); return xs.length ? function () {return f.apply (this, xs.concat (d.arr (arguments)))} : f}});
-  d  (Boolean.prototype, {fn: function () {return this.valueOf () ? d.id.fn.apply (d.fn, arguments) : (1).fn ()}});
+  d  (Boolean.prototype, {fn: function () {return Number.prototype.fn.apply (1 - this.valueOf(), arguments)}});
   d   (Number.prototype, {fn: function () {var x = this, f = function () {return arguments[x]}; return f.fn.apply (f, arguments)}});
 
                /^\./ .macro ('(arguments[0] || this).');
@@ -271,7 +271,7 @@ var d = (function () {
       compose:  function (g) {var f = this.fn(); g = g.fn(); return function () {return f (g.apply (this, arguments))}},
  flat_compose:  function (g) {var f = this.fn(); g = g.fn(); return function () {return f.apply (this, g.apply (this, arguments))}},
         curry:  function (n) {var f = this.fn(); return n > 1 ? function () {var as = d.arr(arguments); return function () {return f.curry (n - 1).apply (this, as.concat (d.arr (arguments)))}} : f},
-        proxy:  function (g) {var f = this.fn(); return g ? function () {return f.apply.apply (f, g.fn() (this, arguments))} : function () {return f.apply (this, arguments)}},
+        proxy:  function (g) {var f = this.fn(); return g ? function () {return f.apply.apply (f, g.fn().apply (this, arguments))} : function () {return f.apply (this, arguments)}},
          bind:  function (x) {var f = this.fn(); return d.init (function () {return f.apply (x, arguments)}, {binding: x, original: f})},
          type:  function  () {var f = function () {}, c = this.fn(); f = f.ctor.apply (f, arguments); return function () {return c.apply (new f(), arguments)}},
          ctor:  function  () {var f = this.fn(), g = function () {f.apply (this, arguments)}; d.init.apply (this, [g.prototype].concat (d.arr (arguments))); return g},
@@ -280,9 +280,9 @@ var d = (function () {
 
   return d}) ();
 
-__pRWWTKS8yxh6Vvo+2FTn+rB0xw9JTodI88KYun1GBTo
+__NQWwvv7U4KX6W7COGyQapDozhkZ2Gjl81ClB+Wg6uBA
 
-meta::code('divergence-rebase-lib', <<'__9aky3h38GeCS8Ak+43Lu7UeH6Hl6H5mH6zIj4D8FUto');
+meta::code('divergence-rebase-lib', <<'__oz350IDFkZ5OwrkPczNMgbDNZ6lO8qCAv/OplMnqEuc');
 Divergence Rebase module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -483,7 +483,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
     that build strings. Unfortunately we won't be able to distinguish between single and double-quoted strings because SpiderMonkey converts them all to double-quoted ones.
 
           function (e) {return e.charAt && '\'"'.indexOf(e.charAt(0)) > -1 && /#\{[^}]+\}/.test(e) ?
-                               '(' + e.replace (/#\{([^}]+)\}/g, function (_, code) {return e.charAt(0) + '+(' + r.translate(code) + ')+' + e.charAt(0)}) + ')' : e},
+                               '(' + e.replace (/#\{([^}]+)\}/g, function (_, code) {return e.charAt(0) + '+(' + r.translate(code.replace(/\\(.)/g, '$1')) + ')+' + e.charAt(0)}) + ')' : e},
 
     Operator overloading.
     Once we're done with all of the preprocessing we can actually replace the operators with method calls. I'm cheating just a bit here; normally you would encase the operation inside a [ node
@@ -518,9 +518,9 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
   r.enable_inline_macro = (function (enabled) {return function () {enabled || (enabled = !! d.inline_macros.push ('$0.toString()'.compose (r.transform).compose (r.parse)))}}) (false)}) ();
 
-__9aky3h38GeCS8Ak+43Lu7UeH6Hl6H5mH6zIj4D8FUto
+__oz350IDFkZ5OwrkPczNMgbDNZ6lO8qCAv/OplMnqEuc
 
-meta::code('main', <<'__Q4qjTLS49lc9g/KMkFTTrY1JF7wOtjhqY5Ihts8rKHM');
+meta::code('main', <<'__aS1BIoxjQk20iBpWO6MwheLQSxig7iknOhxixxYvsbk');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -528,55 +528,50 @@ This debug module enables expression-level debugging and tracing for functions. 
 systematically search through them. Note that this can be arbitrarily memory-intensive; recording every single expression that goes through a system is an expensive way to debug things. To
 compensate, there are calls you can make to start and stop tracing as your program is running. You can also set triggers depending on program values and use a sliding window.
 
-The idea here is that a program evaluates expressions to achieve things. If we have a record of those evaluations, we can mostly reconstruct what the program was doing. The only trouble is
-that we won't have a complete record -- mutable state means that even if we capture a reference to some value we aren't guaranteed that it will be in the same state as it was when we captured
-it. I'm getting around this by using a deep_clone() function, which takes a deep snapshot of a value that includes encoding cyclic references. This is a moderately expensive operation,
-especially from a memory perspective (and it probably doesn't work on things which don't have proper constructors, such as DOM nodes). It also references functions instead of copying them,
-since closure state isn't first-class and thus can't be reproduced.
-
-Note: This module makes extensive use of gensyms. These all start with gensym_ and end with a random number in base-36. If you are in the habit of using such identifiers, then you have a
-one-in-a-billion chance of breaking something. You can change the gensym prefix by setting d.debug.gensym_prefix.
+The idea here is that a program evaluates expressions to achieve things. If we have a record of those evaluations, we can mostly reconstruct what the program was doing.
 
 d.rebase (function () {
   var t = d.debug = _ >$> d.debug.init (this, arguments), global = this, syn = x >$> new d.rebase.syntax(null, x),
-    set = xs >$> d.init.apply (this, xs * '$0.maps_to(true)'.fn()), qw = s >$> s.split(/\s+/), qs = set.compose(qw);
+    set = xs >$> xs * '$0.maps_to(true)'.fn() / d.init, qw = s >$> s.split(/\s+/), qs = set.compose(qw);
 
-  d.init (t, {ring_buffer: '@size = $0, @elements = $1 || [], @position = 0'.fn().ctor ({'<<': '@elements[@position = @position + 1 % @size] = $0, $_'.fn(),
-                                                                                   'to_array': '@elements.slice(@position + 1).concat (@elements.slice(0, @position + 1))'.fn()}),
-                                      reserved: qs('break continue'),      first_only: qs('.'),
-            gensym_prefix: 'gensym',      stop: qs('++ -- u++ u-- new'),  second_only: qs('function catch = : += -= *= /= %= ^= |= &= <<= >>= >>>= in'),
-                ring_size:  10000,        skip: qs('{ ( [ , ; case var if while for do switch return throw delete export import try catch finally void with else'),
+  d.functions ({traced: function (options) {var f = this.fn(), options = options || {}, tracer = options.tracer || d.trace, name = options.name || 'anonymous', count = 0;
+                                            return function () {var c = ++count;
+                                                                tracer ('#{name} (#{c}) called on #{this} with [#{Array.prototype.slice.call (arguments).join (", ")}]');
+                                                                try       {var result = f.apply (this, arguments); tracer ('#{name} (#{c}) returned #{result}'); return result}
+                                                                catch (e) {tracer ('#{name} (#{c}) threw #{e}'); throw e}}}});
 
-           random_integer:  _ >$> Math.random() * (1 << 30) >>> 0,
-                   gensym:  function (s) {var n = t.random_integer(), s = '#{t.gensym_prefix}_#{s ? s + "_" : ""}'; while (s + n.toString(36) in global) n = t.random_integer();
-                                          return s + n.toString(36)},
+  d.init (t, {ring_buffer: '@size = $0, @elements = $1 || [], @position = -1'.fn().ctor ({'<<': '@elements[@position = @position + 1 % @size] = $0, $_'.fn(),
+                                                                                    'to_array': '@elements.slice(@position + 1).concat (@elements.slice(0, @position + 1))'.fn()}),
+                                      reserved: qs('break continue default'),   first_only: qs('.'),
+                                          stop: qs('++ -- u++ u-- new'),       second_only: qs('function catch = : += -= *= /= %= ^= |= &= <<= >>= >>>= in'),
+                ring_size:  10000,        skip: qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try catch finally void with else'),
 
-                  watcher: '@name = $0.gensym(), @events = new $0.ring_buffer($1 || $0.ring_size)'.fn(t).ctor ({
-                            setup_global_hook: function  () {var t = this, hook = (index, value) >$> (t.events << [index, value], value); return global[this.name] = hook, this},
-                           remove_global_hook: function  () {delete global[this.name]; return this},
-                                annotate_tree: function (v) {global[this.name] || this.setup_global_hook();
-                                                             var           $_ = this,
-                                                                 trace_points = global[this.name].trace_points = global[this.name].trace_points || [],
-                                                                annotate_node = v >$> syn('(!') << $_.name << (syn('(') << (syn(',') << (trace_points.push(v) - 1) << v)),
-                                                            annotate_children = v >$> (v.xs ? (v.xs * annotate_tree).fold ((x, y) >$> x << y, syn(v.op)) : v),
-                                                                annotate_tree = v >$> (! v || t.reserved[v] ? v :
-                                                                                               t.stop[v.op] ? annotate_node(v) :
-                                                                                               t.skip[v.op] ? annotate_children(v) :
-                                                                                         t.first_only[v.op] ? syn(v.op) << annotate_tree(v.xs[0]) << v.xs[1] :
-                                                                                        t.second_only[v.op] ? syn(v.op) << v.xs[0] << annotate_tree(v.xs[1]) :
-                                                                                                     ! v.xs ? /^@?[A-Za-z_$][A-Za-z0-9_$]*$/.test(v) ? annotate_node(v) : v :
-                                                                                                              annotate_node (annotate_children (v)));
-                                                             return annotate_tree (v)},
+                  watcher: '@name = d.gensym("debug"), @events = new $0.ring_buffer($1 || $0.ring_size)'.fn(t).ctor ({
+                             setup_global_hook: _ >$> (global[this.name] = ((index, value) >$> (this.events << [index, value], value)).bind (this)),
+                            remove_global_hook: function  () {delete global[this.name]; return this},
+                                 annotate_tree: function (v) {global[this.name] || this.setup_global_hook();
+                                                              var           $_ = this,
+                                                                  trace_points = global[this.name].trace_points = global[this.name].trace_points || [],
+                                                                 annotate_node = v >$> syn('(!') << $_.name << (syn('(') << (syn(',') << (trace_points.push(v) - 1) << v)),
+                                                             annotate_children = v >$> (v.xs ? (v.xs * annotate_tree).fold ((x, y) >$> x << y, syn(v.op)) : v),
+                                                                 annotate_tree = v >$> (! v || t.reserved[v] ? v :
+                                                                                                t.stop[v.op] ? annotate_node(v) :
+                                                                                                t.skip[v.op] ? annotate_children(v) :
+                                                                                          t.first_only[v.op] ? syn(v.op) << annotate_tree(v.xs[0]) << v.xs[1] :
+                                                                                         t.second_only[v.op] ? syn(v.op) << v.xs[0] << annotate_tree(v.xs[1]) :
+                                                                                                      ! v.xs ? /^@?[A-Za-z_$][A-Za-z0-9_$]*$/.test(v) ? annotate_node(v) : v :
+                                                                                                               annotate_node (annotate_children (v)));
+                                                              return annotate_tree (v)},
 
-                                     annotate: f >$> d.rebase.deparse (this.annotate_tree (d.rebase.parse (f)))})})}) ();
-__Q4qjTLS49lc9g/KMkFTTrY1JF7wOtjhqY5Ihts8rKHM
+                                      annotate: f >$> d.rebase.deparse (this.annotate_tree (d.rebase.parse (f)))})})}) ();
+__aS1BIoxjQk20iBpWO6MwheLQSxig7iknOhxixxYvsbk
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
 :: get main
 __UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0
 
-meta::code('test', <<'__kCWUIyKe73mv6toSmFWRzKoXVUoasgPQ0z2+BKXymxc');
+meta::code('test', <<'__EwH+/MlNwfoZDB7J+qZvLzArbZ3r+febF3EGxj0tK6s');
 Divergence debug unit tests | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -589,7 +584,7 @@ Licensed under the terms of the MIT source code license
   d.rebase.trace = d.trace;
 
   var w         = new d.debug.watcher();
-  var factorial = w.annotate (function (n) {var next_value = n > 1 ? n * factorial (n - 1) : n; return next_value});
+  var factorial = w.annotate (function (n) {return n > 1 ? n * factorial (n - 1) : n});
 
   print (factorial (5));
 
@@ -606,7 +601,7 @@ Licensed under the terms of the MIT source code license
   d.rebase (function (x) {return y >$> x + y});
 
   print (w2.events.elements.length);
-__kCWUIyKe73mv6toSmFWRzKoXVUoasgPQ0z2+BKXymxc
+__EwH+/MlNwfoZDB7J+qZvLzArbZ3r+febF3EGxj0tK6s
 
 meta::code('test-utils', <<'__tHoTKmrPyN4cgiyxnY74uo1roOtwNmGRC87zhFQjDxg');
 Unit test utilities.
