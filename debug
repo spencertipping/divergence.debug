@@ -520,7 +520,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
 __oz350IDFkZ5OwrkPczNMgbDNZ6lO8qCAv/OplMnqEuc
 
-meta::code('main', <<'__lk515gUl+CvgzWUqTklKUqZ3AdiajUjcJbRWCox0gWY');
+meta::code('main', <<'__wYigP3JOuLngwQwd3qcBhvRJlkoXaKJf8xJxXytCInA');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -549,6 +549,8 @@ d.rebase (function () {
         protected_resolve:  qs('[! .'),
 
                     event: '@node = $0, @value = $1, @time = new Date()'.ctor ({toString: _ >$> '(#{this.node}) = (#{this.value}) at #{this.time.getTime()}'}),
+
+                    trace: f >$> (new t.watcher() |$> (w >$> (w.use_tracing(), w.annotate (f)))),
 
                   watcher: '@name = d.gensym("hook"), @events = new $0.ring_buffer($1 && $1.log_size || 10000), @predicate = $1 && $1.predicate || (0).fn()'.fn(t).ctor ({
                                    use_logging: _ >$> (global[this.name] = this.hook_function (this.log.bind   (this))),
@@ -579,7 +581,7 @@ d.rebase (function () {
 
                                          trace: e >$> (this.predicate(e) && d.trace(e)),
                                            log: e >$> (e ? this.events << e : this.events.to_array())})})}) ();
-__lk515gUl+CvgzWUqTklKUqZ3AdiajUjcJbRWCox0gWY
+__wYigP3JOuLngwQwd3qcBhvRJlkoXaKJf8xJxXytCInA
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
