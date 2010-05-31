@@ -692,12 +692,10 @@ meta::function('code', <<'__NBNecoJ9JVwyGbA+8LrNYjQKQyQOxdFAkjgZ4ueT5QA');
 join "\n\n", map preprocess(retrieve("code::$_")), @_;
 __NBNecoJ9JVwyGbA+8LrNYjQKQyQOxdFAkjgZ4ueT5QA
 
-meta::function('compile', <<'__MShrOUjQAAUpKKMX6pRqtKv89ZfBJ3nEopLXg2ulZXo');
-file::write('divergence.js',            unlit('divergence-lib'));
-file::write('divergence.rebase.js',     unlit('divergence-rebase-lib'));
+meta::function('compile', <<'__Akl9ROnpF151rBW7Kknk3UdTKe3ln0m8wiXUYRvDnE8');
 file::write('divergence.debug.js',      unlit('main'));
 file::write('divergence.debug.test.js', unlit('test'));
-__MShrOUjQAAUpKKMX6pRqtKv89ZfBJ3nEopLXg2ulZXo
+__Akl9ROnpF151rBW7Kknk3UdTKe3ln0m8wiXUYRvDnE8
 
 meta::function('cp', <<'__yn1SQkcEk6o+gnuCy3QGVFtQb2piaCoUdJPGUkLjpD4');
 my ($from, $to) = @_;
