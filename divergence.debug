@@ -554,7 +554,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
 __WaQoSM5hMIotoujTqinlSgnspTESmZqk1hQOaCrAYDQ
 
-meta::code('main', <<'__BA+2LeGuFGG4tsCstaWtUwpoixrDNQwLX10kfn0ha/g');
+meta::code('main', <<'__XMk2WJ7dM79LMncfdpj0tGHvpTe5kPzptiTJLwYt3hI');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -583,9 +583,9 @@ d.rebase (function () {
 
   d.init (t, {ring_buffer: '@size = $0, @elements = $1 || [], @position = -1'.ctor ({'<<': '@elements[@position = @position + 1 % @size] = $0, $_'.fn(),
                                                                                'to_array': '@elements.slice(@position + 1).concat (@elements.slice(0, @position + 1))'.fn()}),
-                 reserved:  qs('break continue default'),   first_only: qs('.'),
-                     stop:  qs('++ -- u++ u-- new'),       second_only: qs('function catch = : += -= *= /= %= ^= |= &= <<= >>= >>>= in'),
-                     skip:  qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try catch finally void with else'),
+                 reserved:  qs('break continue default eval'),   first_only: qs('.'),
+                     stop:  qs('++ -- u++ u-- new'),            second_only: qs('function catch = : += -= *= /= %= ^= |= &= <<= >>= >>>= in'),
+                     skip:  qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try finally void with else'),
         protected_resolve:  qs('[! .'),
 
                     event: '@node = $0, @value = $1, @time = new Date(), @hook = $2'.ctor ({toString: _ >$> (this.is_before_evaluation() ?
@@ -639,7 +639,7 @@ d.rebase (function () {
 
                                   trace: e >$> ((this, this.hook_active()) |$> ((t, a) >$> (t.deactivate_hook(), t.predicate(e) && d.trace(e), a && t.activate_hook()))),
                                     log: e >$> (e ? this.events << e : this.events.to_array())})})}) ();
-__BA+2LeGuFGG4tsCstaWtUwpoixrDNQwLX10kfn0ha/g
+__XMk2WJ7dM79LMncfdpj0tGHvpTe5kPzptiTJLwYt3hI
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
