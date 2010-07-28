@@ -554,7 +554,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
 __WaQoSM5hMIotoujTqinlSgnspTESmZqk1hQOaCrAYDQ
 
-meta::code('main', <<'__XMk2WJ7dM79LMncfdpj0tGHvpTe5kPzptiTJLwYt3hI');
+meta::code('main', <<'__qAORsWS1GBS0fNm0sRowyhTpLv0ioXulozNkmYsAs94');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -572,7 +572,7 @@ than tracing directly, but the advantage is that toString() and any other functi
 
 d.rebase (function () {
   var t = d.debug = _ >$> d.debug.init (this, arguments), global = this, syn = x >$> new d.rebase.syntax(null, x),
-    set = xs >$> xs * '$0.maps_to(true)'.fn() / d.init, qw = s >$> s.split(/\s+/), qs = set.compose(qw);
+    set = xs >$> xs * '$0.maps_to(true)'.fn() / d.init, qw = s >$> s.split(/\s+/), qs = set.compose(qw), start = new Date().getTime();
 
   d.functions ({traced: function (options) {var f = this.fn(), options = options || {}, tracer = options.tracer || d.trace, name = options.name || 'anonymous', count = 0;
                                             return d.init (function () {var c = ++count;
@@ -590,7 +590,7 @@ d.rebase (function () {
 
                     event: '@node = $0, @value = $1, @time = new Date(), @hook = $2'.ctor ({toString: _ >$> (this.is_before_evaluation() ?
                                                                                                               '(#{this.node}) is about to be evaluated' :
-                                                                                                              '(#{this.node}) = (#{this.value}) at #{this.time.getTime()}'),
+                                                                                                              '(#{this.node}) = (#{this.value}) at +#{this.time.getTime() - start}'),
                                                                                 is_before_evaluation: _ >$> (this.value === this.hook)}),
 
                     trace: (p, f) >$> new t.watcher().use_tracing(f && p).annotate (f || p),
@@ -639,7 +639,7 @@ d.rebase (function () {
 
                                   trace: e >$> ((this, this.hook_active()) |$> ((t, a) >$> (t.deactivate_hook(), t.predicate(e) && d.trace(e), a && t.activate_hook()))),
                                     log: e >$> (e ? this.events << e : this.events.to_array())})})}) ();
-__XMk2WJ7dM79LMncfdpj0tGHvpTe5kPzptiTJLwYt3hI
+__qAORsWS1GBS0fNm0sRowyhTpLv0ioXulozNkmYsAs94
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.

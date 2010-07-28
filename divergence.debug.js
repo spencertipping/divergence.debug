@@ -15,7 +15,7 @@
 
 d.rebase (function () {
   var t = d.debug = _ >$> d.debug.init (this, arguments), global = this, syn = x >$> new d.rebase.syntax(null, x),
-    set = xs >$> xs * '$0.maps_to(true)'.fn() / d.init, qw = s >$> s.split(/\s+/), qs = set.compose(qw);
+    set = xs >$> xs * '$0.maps_to(true)'.fn() / d.init, qw = s >$> s.split(/\s+/), qs = set.compose(qw), start = new Date().getTime();
 
   d.functions ({traced: function (options) {var f = this.fn(), options = options || {}, tracer = options.tracer || d.trace, name = options.name || 'anonymous', count = 0;
                                             return d.init (function () {var c = ++count;
@@ -33,7 +33,7 @@ d.rebase (function () {
 
                     event: '@node = $0, @value = $1, @time = new Date(), @hook = $2'.ctor ({toString: _ >$> (this.is_before_evaluation() ?
                                                                                                               '(#{this.node}) is about to be evaluated' :
-                                                                                                              '(#{this.node}) = (#{this.value}) at #{this.time.getTime()}'),
+                                                                                                              '(#{this.node}) = (#{this.value}) at +#{this.time.getTime() - start}'),
                                                                                 is_before_evaluation: _ >$> (this.value === this.hook)}),
 
                     trace: (p, f) >$> new t.watcher().use_tracing(f && p).annotate (f || p),
