@@ -31,10 +31,10 @@ d.rebase (function () {
                      skip:  qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try finally void with else'),
         protected_resolve:  qs('[! .'),
 
-                    event: '@node = $0, @value = $1, @time = new Date(), @hook = $2'.ctor ({toString: _ >$> (this.is_before_evaluation() ?
-                                                                                                              '(#{this.node}) is about to be evaluated' :
-                                                                                                              '(#{this.node}) = (#{this.value}) at +#{this.time.getTime() - start}'),
-                                                                                is_before_evaluation: _ >$> (this.value === this.hook)}),
+                    event: '@node = $0, @value = $1, @time = new Date(), @hook = $2, @count = $3'.ctor (
+                             {toString: _ >$> (this.is_before_evaluation() ? '(#{this.node}) is about to be evaluated' :
+                                                                             '(#{this.node}) = (#{this.value}) at +#{this.time.getTime() - start} (event #{this.count})'),
+                  is_before_evaluation: _ >$> (this.value === this.hook)}),
 
                     trace: (p, f) >$> new t.watcher().use_tracing(f && p).annotate (f || p),
 
@@ -53,9 +53,10 @@ d.rebase (function () {
 
                           hook_function: destination >$> (this |$> ((w, hook) >$> (hook = (index, value) >$> (hook.active && (
                                                                                                                 value === hook ? w.unrequited.push (w.trace_points[index]) : w.unrequited.pop(),
-                                                                                                                destination (new t.event (w.trace_points[index], value, hook))),
+                                                                                                                destination (new t.event (w.trace_points[index], value, hook, ++hook.count))),
                                                                                                               value),
                                                                                    hook.active = true,
+                                                                                   hook.count  = 0,
                                                                                    hook))),
 
                           annotate_tree: function (v) {global[this.name] || (this.installed_hook = this.use_logging());

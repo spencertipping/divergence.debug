@@ -554,7 +554,7 @@ as a key there (e.g. 'foo'), then it will be sandwiched between binary operators
 
 __WaQoSM5hMIotoujTqinlSgnspTESmZqk1hQOaCrAYDQ
 
-meta::code('main', <<'__qAORsWS1GBS0fNm0sRowyhTpLv0ioXulozNkmYsAs94');
+meta::code('main', <<'__1twpAPWj/sOHgG3r/8EI3HHKM0Bu8H4OYKPJWLeabuE');
 Divergence debug module | Spencer Tipping <spencer@spencertipping.com>
 Licensed under the terms of the MIT source code license
 
@@ -588,10 +588,10 @@ d.rebase (function () {
                      skip:  qs('{ ( [ , ; ?: case var if while for do switch return throw delete export import try finally void with else'),
         protected_resolve:  qs('[! .'),
 
-                    event: '@node = $0, @value = $1, @time = new Date(), @hook = $2'.ctor ({toString: _ >$> (this.is_before_evaluation() ?
-                                                                                                              '(#{this.node}) is about to be evaluated' :
-                                                                                                              '(#{this.node}) = (#{this.value}) at +#{this.time.getTime() - start}'),
-                                                                                is_before_evaluation: _ >$> (this.value === this.hook)}),
+                    event: '@node = $0, @value = $1, @time = new Date(), @hook = $2, @count = $3'.ctor (
+                             {toString: _ >$> (this.is_before_evaluation() ? '(#{this.node}) is about to be evaluated' :
+                                                                             '(#{this.node}) = (#{this.value}) at +#{this.time.getTime() - start} (event #{this.count})'),
+                  is_before_evaluation: _ >$> (this.value === this.hook)}),
 
                     trace: (p, f) >$> new t.watcher().use_tracing(f && p).annotate (f || p),
 
@@ -610,9 +610,10 @@ d.rebase (function () {
 
                           hook_function: destination >$> (this |$> ((w, hook) >$> (hook = (index, value) >$> (hook.active && (
                                                                                                                 value === hook ? w.unrequited.push (w.trace_points[index]) : w.unrequited.pop(),
-                                                                                                                destination (new t.event (w.trace_points[index], value, hook))),
+                                                                                                                destination (new t.event (w.trace_points[index], value, hook, ++hook.count))),
                                                                                                               value),
                                                                                    hook.active = true,
+                                                                                   hook.count  = 0,
                                                                                    hook))),
 
                           annotate_tree: function (v) {global[this.name] || (this.installed_hook = this.use_logging());
@@ -639,7 +640,7 @@ d.rebase (function () {
 
                                   trace: e >$> ((this, this.hook_active()) |$> ((t, a) >$> (t.deactivate_hook(), t.predicate(e) && d.trace(e), a && t.activate_hook()))),
                                     log: e >$> (e ? this.events << e : this.events.to_array())})})}) ();
-__qAORsWS1GBS0fNm0sRowyhTpLv0ioXulozNkmYsAs94
+__1twpAPWj/sOHgG3r/8EI3HHKM0Bu8H4OYKPJWLeabuE
 
 meta::code('scratch', <<'__UFvA92B98GVzh3boXGxl19QiD9162rJI14MuI2vyVq0');
 This is for scratchwork that isn't part of your system. It could be used for testing or other experimentation.
